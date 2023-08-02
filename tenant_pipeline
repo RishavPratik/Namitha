@@ -1,0 +1,88 @@
+trigger:
+  - none
+
+pr: 'none'
+
+stages:
+- stage: 'Tenant_SPNs'
+  displayName: 'Service Principals'
+  jobs:
+  - deployment: 'SP_InitandPlan'
+    displayName: 'Terraform Init and Plan'
+    environment: 'Plans'
+    pool:
+      name: 'azureaustraliaeastselfhosted'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: ../../_pipelines-shared/template-init.yml
+            parameters:
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/serviceprincipals'
+              backendServiceArm: 'spn-prd-iac-tfstate-001' # SPN WITH R/W ACCESS TO WHERE TF STATE IS TO BE STORED
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              backendAzureRmResourceGroupName: 'rg-prd-iac-tf-001'
+              backendAzureRmStorageAccountName: 'stasahigpfmgttf'
+              backendAzureRmKey: 'tenant-spns.tfstate'
+              terraformVersion: '0.14.7' #'0.12.29'
+
+          - template: ../../_pipelines-shared/template-plan.yml
+            parameters:
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/serviceprincipals'
+
+
+- stage: 'Tenant_ManagementGroups'
+  displayName: 'Management Groups'
+  jobs:
+  - deployment: 'MG_InitandPlan'
+    displayName: 'Terraform Init and Plan'
+    environment: 'Plans'
+    pool:
+      name: 'azureaustraliaeastselfhosted'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: ../../_pipelines-shared/template-init.yml
+            parameters:
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/level1-1_management-groups'
+              backendServiceArm: 'spn-prd-iac-tfstate-001' # SPN WITH R/W ACCESS TO WHERE TF STATE IS TO BE STORED
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              backendAzureRmResourceGroupName: 'rg-prd-iac-tf-001'
+              backendAzureRmStorageAccountName: 'stasahigpfmgttf'
+              backendAzureRmKey: 'tenant-mgtgroups.tfstate'
+              terraformVersion: '0.14.7' #'0.12.29'
+
+          - template: ../../_pipelines-shared/template-plan.yml
+            parameters:
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/level1-1_management-groups'
+
+
+- stage: 'Tenant_Policies'
+  displayName: 'Policies'
+  jobs:
+  - deployment: 'Pol_InitandPlan'
+    displayName: 'Terraform Init and Plan'
+    environment: 'Plans' # was Tenant and required approval just for plan
+    pool:
+      name: 'azureaustraliaeastselfhosted'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: ../../_pipelines-shared/template-init.yml
+            parameters:
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/level1-2_azure-policies'
+              backendServiceArm: 'spn-prd-iac-tfstate-001' # SPN WITH R/W ACCESS TO WHERE TF STATE IS TO BE STORED
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              backendAzureRmResourceGroupName: 'rg-prd-iac-tf-001'
+              backendAzureRmStorageAccountName: 'stasahigpfmgttf'
+              backendAzureRmKey: 'tenant-policies.tfstate'
+              terraformVersion: '0.14.7' #'0.12.29'
+
+          - template: ../../_pipelines-shared/template-plan.yml
+            parameters:
+              environmentServiceNameAzureRM: 'spn-prd-iac-tenant-001' # SPN WITH R/W ACCESS TO TARGET LOCATION OF RESOURCES TO BE DEPLOYED
+              tfdir: '$(System.DefaultWorkingDirectory)/iac-az_TENANT/terraform/level1-2_azure-policies'
